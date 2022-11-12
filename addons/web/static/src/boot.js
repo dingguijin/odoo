@@ -94,97 +94,94 @@
             }
             return [...missing];
         },
-        processJobs: function () {
-            var job;
-
-            function processJob(job) {
-                var require = makeRequire(job);
-
-                var jobExec;
-                function onError(e) {
-                    job.error = e;
-                    failed.push(job);
-                    console.error(`Error while loading ${job.name}: ${e.message}`, e);
-                }
-                var def = new Promise(function (resolve) {
-                    try {
-                        jobExec = job.factory.call(null, require);
-                        jobs.splice(jobs.indexOf(job), 1);
-                    } catch (e) {
-                        onError(e);
-                    }
-                    if (!job.error) {
-                        Promise.resolve(jobExec)
-                            .then(function (data) {
-                                services[job.name] = data;
-                                resolve();
-                                odoo.__DEBUG__.processJobs();
-                            })
-                            .guardedCatch(function (e) {
-                                job.rejected = e || true;
-                                jobs.push(job);
-                            })
-                            .catch(function (e) {
-                                if (e instanceof Error) {
-                                    onError(e);
-                                }
-                                resolve();
-                            });
-                    } else {
-                        resolve();
-                    }
+        makeRequire: function(job) {
+            var deps = {};
+            Object.keys(services)
+                .filter(function (item) {
+                    return job.deps.indexOf(item) >= 0;
+                })
+                .forEach(function (key) {
+                    deps[key] = services[key];
                 });
-                jobPromises.push(def);
-                def.then(job.resolve);
-            }
+            
+            return function require(name) {
+                if (!(name in deps)) {
+                    console.error("Undefined dependency: ", name);
+                }
+                return deps[name];
+            };
+        },
 
-            function isReady(job) {
-                return (
-                    !job.error &&
+        processJob: function(job) {
+            job.boot_status = "INIT";
+            var require = this.makeRequire(job);
+            var jobExec;
+            function onError(e) {
+                job.error = e;
+                failed.push(job);
+                console.error(`Error while loading ${job.name}: ${e.message}`, e);
+            }
+            var def = new Promise(function (resolve) {
+                try {
+                    jobExec = job.factory.call(null, require);
+                } catch (e) {
+                    onError(e);
+                }
+                if (!job.error) {
+                    Promise.resolve(jobExec)
+                        .then(function (data) {
+                            services[job.name] = data;
+                            job.boot_status = "RESOVLED";
+                            resolve();
+                        })
+                        .guardedCatch(function (e) {
+                            job.rejected = e || true;
+                        })
+                        .catch(function (e) {
+                            if (e instanceof Error) {
+                                onError(e);
+                            }
+                            resolve();
+                        });
+                } else {
+                    resolve();
+                }
+            });
+            jobPromises.push(def);
+            def.then(job.resolve);
+            return def;
+        },
+
+        isReady: function(job) {
+            
+            return (!job.error &&
                     !job.rejected &&
+                    job.boot_status == "NULL" &&
                     job.factory.deps.every(function (name) {
                         return name in services;
                     })
-                );
-            }
-
-            function makeRequire(job) {
-                var deps = {};
-                Object.keys(services)
-                    .filter(function (item) {
-                        return job.deps.indexOf(item) >= 0;
-                    })
-                    .forEach(function (key) {
-                        deps[key] = services[key];
-                    });
-
-                return function require(name) {
-                    if (!(name in deps)) {
-                        console.error("Undefined dependency: ", name);
-                    }
-                    return deps[name];
-                };
-            }
-
-            while (jobs.length) {
-                job = undefined;
-                for (var i = 0; i < jobs.length; i++) {
-                    if (isReady(jobs[i])) {
-                        job = jobs[i];
-                        break;
-                    }
-                }
-                if (!job) {
-                    break;
-                }
-                processJob(job);
-            }
-
-            return services;
+            );
         },
+
+        processJobs: function () {
+            var jobs_promises = [];
+            for (var i = 0; i < jobs.length; i++) {
+                if (this.isReady(jobs[i])) {
+                    jobs_promises.push(this.processJob(jobs[i]));
+                }
+            }
+            if (jobs_promises.length == 0) {
+                return;
+            }
+            Promise.all(jobs_promises).then(function () {
+                odoo.__DEBUG__.processJobs();
+            });
+        },
+        
         factories: factories,
         services: services,
     };
+    
     odoo.define = function () {
         var args = Array.prototype.slice.call(arguments);
         var name = typeof args[0] === "string" ? args.shift() : "__odoo_job" + jobUID++;
@@ -223,6 +220,7 @@
             promiseResolve = resolve;
         });
         jobs.push({
+            boot_status: "NULL",
             name: name,
             factory: factory,
             deps: deps,
@@ -234,7 +232,7 @@
             jobDeps.push({ from: dep, to: name });
         });
 
-        odoo.__DEBUG__.processJobs();
+        // odoo.__DEBUG__.processJobs();
     };
     odoo.log = function () {
         var missing = [];
@@ -378,16 +376,20 @@
         return services[moduleName];
     };
 
+    globalThis.addEventListener("load", function processJobWhebLoaded() {
+        odoo.__DEBUG__.processJobs();
+    });
+    
     // Automatically log errors detected when loading modules
     globalThis.addEventListener("load", function logWhenLoaded() {
-        const len = jobPromises.length;
-        Promise.all(jobPromises).then(function () {
-            if (len === jobPromises.length) {
-                odoo.log();
-            } else {
-                logWhenLoaded();
-            }
-        });
+        // const len = jobPromises.length;
+        // Promise.all(jobPromises).then(function () {
+        //     if (len === jobPromises.length) {
+        //         odoo.log();
+        //     } else {
+        //         logWhenLoaded();
+        //     }
+        // });
     });
 
     /**

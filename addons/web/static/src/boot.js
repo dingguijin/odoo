@@ -150,6 +150,7 @@
         factories[name] = factory;
 
         jobs.push({
+            boot_status: "NULL",
             name: name,
             factory: factory,
             deps: deps,
@@ -159,6 +160,7 @@
             jobDeps.push({ from: dep, to: name });
         });
 
+        this.recursive_boot_modules(jobs);
         // this.processJobs(jobs, services);
     };
     odoo.log = function () {
@@ -273,94 +275,18 @@
         };
         didLogInfoResolve();
     };
-    odoo.processJobs = function (jobs, services) {
-        var job;
 
-        function processJob(job) {
-            var require = makeRequire(job);
+    // ======== DINGGUIJIN ========
 
-            var jobExec;
-            function onError(e) {
-                job.error = e;
-                console.error(`Error while loading ${job.name}: ${e.message}`, e);
-            }
-            var def = new Promise(function (resolve) {
-                try {
-                    jobExec = job.factory.call(null, require);
-                    jobs.splice(jobs.indexOf(job), 1);
-                } catch (e) {
-                    onError(e);
-                }
-                if (!job.error) {
-                    Promise.resolve(jobExec)
-                        .then(function (data) {
-                            services[job.name] = data;
-                            resolve();
-                            odoo.processJobs(jobs, services);
-                        })
-                        .guardedCatch(function (e) {
-                            job.rejected = e || true;
-                            jobs.push(job);
-                        })
-                        .catch(function (e) {
-                            if (e instanceof Error) {
-                                onError(e);
-                            }
-                            resolve();
-                        });
-                } else {
-                    resolve();
-                }
-            });
-            jobPromises.push(def);
-        }
-
-        function isReady(job) {
-            return (
-                !job.error &&
-                !job.rejected &&
+    odoo.is_ready = function(job) {
+        return (!job.error &&
+                job.boot_status == "NULL" &&
                 job.factory.deps.every(function (name) {
                     return name in services;
                 })
-            );
-        }
-
-        function makeRequire(job) {
-            var deps = {};
-            Object.keys(services)
-                .filter(function (item) {
-                    return job.deps.indexOf(item) >= 0;
-                })
-                .forEach(function (key) {
-                    deps[key] = services[key];
-                });
-
-            return function require(name) {
-                if (!(name in deps)) {
-                    console.error("Undefined dependency: ", name);
-                }
-                return deps[name];
-            };
-        }
-
-        while (jobs.length) {
-            job = undefined;
-            for (var i = 0; i < jobs.length; i++) {
-                if (isReady(jobs[i])) {
-                    job = jobs[i];
-                    break;
-                }
-            }
-            if (!job) {
-                break;
-            }
-            processJob(job);
-        }
-
-        return services;
-    };
-
-    // ======== DINGGUIJIN ========
+               );
+    },
+    
     odoo.make_require = function (job) {
         var deps = {};
         Object.keys(services)
@@ -379,23 +305,20 @@
         };
     };
 
-    var _constructed_jobs = [];
     odoo.process_job = function (job) {
-        job.status = "INIT";
+        job.boot_status = "INIT";
         function onError(e) {
             job.error = e;
             console.error(`Error while loading ${job.name}: ${e.message}`, e);
         }
-
         var p = new Promise(function(resolve) {
             var _require = odoo.make_require(job);
             try {
                 var jobExec = job.factory.call(null, _require);
                 Promise.resolve(jobExec).then(function(data) {
                     services[job.name] = data;
-                    _constructed_jobs.push(job.name);            
-                    job.status = "CONSTRUCT";
-                    resolve();        
+                    job.boot_status = "RESOLVED";
+                    resolve();
                 });
             } catch (e) {
                 onError(e);
@@ -414,23 +337,13 @@
 
     odoo.find_able_to_init_jobs = function(jobs_) {
         return jobs_.filter(function(job) {
-            return job.status == "NULL" && job.deps_.length == 0;
+            return odoo.is_ready(job);
         });
     };
 
     odoo.find_uninit_jobs = function(jobs_) {
         return jobs_.filter(function(job) {
-            return job.status == "NULL";
-        });
-    };
-
-    odoo.arrange_jobs_deps = function(uninit_jobs) {
-        return uninit_jobs.map(function(job) {
-            var deps = [...job.deps_];
-            job.deps_ = deps.filter(function(dep) {
-                return _constructed_jobs.indexOf(dep) < 0;
-            });
-            return job;
+            return job.boot_status == "NULL";
         });
     };
 
@@ -440,7 +353,6 @@
             var ps = odoo.process_jobs(to_init_jobs);
             Promise.all(ps).then(function() {
                 var uninit_jobs = odoo.find_uninit_jobs(jobs_);
-                uninit_jobs = odoo.arrange_jobs_deps(uninit_jobs);
                 if (uninit_jobs.length > 0) {
                     odoo.recursive_boot_modules(uninit_jobs);
                 }
@@ -449,10 +361,7 @@
     };
     
     odoo.boot_all_modules = function() {
-        for (var i = 0; i < jobs.length; i++) {
-            jobs[i].status = "NULL";
-            jobs[i].deps_ = [...jobs[i].deps];
-        }
+        console.log("TRY BOOT MODULES LEN", jobs.length);
         odoo.recursive_boot_modules(jobs);
     };
 
@@ -466,14 +375,7 @@
     // Automatically log errors detected when loading modules
     window.addEventListener("load", function logWhenLoaded() {
         setTimeout(function () {
-            var len = jobPromises.length;
-            Promise.all(jobPromises).then(function () {
-                if (len === jobPromises.length) {
-                    odoo.log();
-                } else {
-                    logWhenLoaded();
-                }
-            });
+            odoo.log();            
         }, 5000);
     });
 

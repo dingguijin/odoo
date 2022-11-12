@@ -153,12 +153,13 @@
         },
 
         isReady: function(job) {            
-            return (!job.error &&
-                    !job.rejected &&
-                    job.boot_status == "NULL" &&
-                    job.factory.deps.every(function (name) {
-                        return name in services;
-                    })
+            return (
+                !job.error &&
+                !job.rejected &&
+                job.boot_status == "NULL" &&
+                job.factory.deps.every(function (name) {
+                    return name in services;
+                })
             );
         },
 
@@ -392,7 +393,7 @@
     });
 
     /**
-     * Visit the list of jobs, and return the first found cycle, if any
+     * visit the list of jobs, and return the first found cycle, if any
      *
      * @param {any[]} jobs
      * @returns {null | string} either a string describing a cycle, or null

@@ -1,5 +1,5 @@
-
 /** @odoo-module **/
+import env from 'web.env'
 
 export function makeMessagingToLegacyEnv(legacyEnv) {
     return {

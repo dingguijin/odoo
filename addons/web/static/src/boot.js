@@ -159,7 +159,7 @@
             jobDeps.push({ from: dep, to: name });
         });
 
-        this.processJobs(jobs, services);
+        // this.processJobs(jobs, services);
     };
     odoo.log = function () {
         var missing = [];
@@ -360,6 +360,109 @@
         return services;
     };
 
+    // ======== DINGGUIJIN ========
+    odoo.make_require = function (job) {
+        var deps = {};
+        Object.keys(services)
+            .filter(function (item) {
+                return job.deps.indexOf(item) >= 0;
+            })
+            .forEach(function (key) {
+                deps[key] = services[key];
+            });
+
+        return function require(name) {
+            if (!(name in deps)) {
+                console.error("Undefined dependency: ", name);
+            }
+            return deps[name];
+        };
+    };
+
+    var _constructed_jobs = [];
+    odoo.process_job = function (job) {
+        job.status = "INIT";
+        function onError(e) {
+            job.error = e;
+            console.error(`Error while loading ${job.name}: ${e.message}`, e);
+        }
+
+        var p = new Promise(function(resolve) {
+            var _require = odoo.make_require(job);
+            try {
+                var jobExec = job.factory.call(null, _require);
+                Promise.resolve(jobExec).then(function(data) {
+                    services[job.name] = data;
+                    _constructed_jobs.push(job.name);            
+                    job.status = "CONSTRUCT";
+                    resolve();        
+                });
+            } catch (e) {
+                onError(e);
+            }            
+        });
+        return p;
+    };
+
+    odoo.process_jobs = function (jobs_) {
+        var ps = [];
+        for (var i = 0; i < jobs_.length; i++) {
+            ps.push(odoo.process_job(jobs_[i]));
+        }
+        return ps;
+    };
+
+    odoo.find_able_to_init_jobs = function(jobs_) {
+        return jobs_.filter(function(job) {
+            return job.status == "NULL" && job.deps_.length == 0;
+        });
+    };
+
+    odoo.find_uninit_jobs = function(jobs_) {
+        return jobs_.filter(function(job) {
+            return job.status == "NULL";
+        });
+    };
+
+    odoo.arrange_jobs_deps = function(uninit_jobs) {
+        return uninit_jobs.map(function(job) {
+            var deps = [...job.deps_];
+            job.deps_ = deps.filter(function(dep) {
+                return _constructed_jobs.indexOf(dep) < 0;
+            });
+            return job;
+        });
+    };
+
+    odoo.recursive_boot_modules = function(jobs_) {
+        var to_init_jobs = odoo.find_able_to_init_jobs(jobs_);
+        if (to_init_jobs.length != 0) {
+            var ps = odoo.process_jobs(to_init_jobs);
+            Promise.all(ps).then(function() {
+                var uninit_jobs = odoo.find_uninit_jobs(jobs_);
+                uninit_jobs = odoo.arrange_jobs_deps(uninit_jobs);
+                if (uninit_jobs.length > 0) {
+                    odoo.recursive_boot_modules(uninit_jobs);
+                }
+            });
+        }
+    };
+    
+    odoo.boot_all_modules = function() {
+        for (var i = 0; i < jobs.length; i++) {
+            jobs[i].status = "NULL";
+            jobs[i].deps_ = [...jobs[i].deps];
+        }
+        odoo.recursive_boot_modules(jobs);
+    };
+
+    window.addEventListener("load", function bootWhenLoaded() {
+        setTimeout(function () {
+            odoo.boot_all_modules();
+        });
+    });
+    // ======== DINGGUIJIN ========
+    
     // Automatically log errors detected when loading modules
     window.addEventListener("load", function logWhenLoaded() {
         setTimeout(function () {

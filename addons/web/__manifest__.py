@@ -102,6 +102,8 @@ This module provides the core of the Odoo Web Client.
             ('remove', 'web/static/src/webclient/clickbot/clickbot.js'), # lazy loaded
             'web/static/src/env.js',
 
+            'web/static/lib/event-target/min.js',
+            'web/static/lib/resize-observer-polyfill/dist/ResizeObserver.js',
             'web/static/lib/jquery.scrollTo/jquery.scrollTo.js',
             'web/static/lib/luxon/luxon.js',
             'web/static/lib/py.js/lib/py.js',

@@ -150,6 +150,7 @@
         factories[name] = factory;
 
         jobs.push({
+            status: 0,
             name: name,
             factory: factory,
             deps: deps,
@@ -277,6 +278,7 @@
         var job;
 
         function processJob(job) {
+            job.status = 1;
             var require = makeRequire(job);
 
             var jobExec;
@@ -287,7 +289,6 @@
             var def = new Promise(function (resolve) {
                 try {
                     jobExec = job.factory.call(null, require);
-                    jobs.splice(jobs.indexOf(job), 1);
                 } catch (e) {
                     onError(e);
                 }
@@ -295,12 +296,13 @@
                     Promise.resolve(jobExec)
                         .then(function (data) {
                             services[job.name] = data;
+                            job.status = 2;
                             resolve();
                             odoo.processJobs(jobs, services);
                         })
                         .guardedCatch(function (e) {
                             job.rejected = e || true;
-                            jobs.push(job);
+                            job.status = 0;
                         })
                         .catch(function (e) {
                             if (e instanceof Error) {
@@ -317,6 +319,7 @@
 
         function isReady(job) {
             return (
+                job.status == 0 &&
                 !job.error &&
                 !job.rejected &&
                 job.factory.deps.every(function (name) {

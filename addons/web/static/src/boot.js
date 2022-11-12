@@ -111,7 +111,6 @@
                 return deps[name];
             };
         },
-
         processJob: function(job) {
             job.boot_status = "INIT";
             var require = this.makeRequire(job);
@@ -151,7 +150,6 @@
             def.then(job.resolve);
             return def;
         },
-
         isReady: function(job) {            
             return (
                 !job.error &&
@@ -162,7 +160,6 @@
                 })
             );
         },
-
         processJobs: function () {
             var jobs_promises = [];
             for (var i = 0; i < jobs.length; i++) {
@@ -173,7 +170,9 @@
             if (jobs_promises.length == 0) {
                 return;
             }
+            console.log("job p len", jobs_promises.length);
             Promise.all(jobs_promises).then(function () {
+                console.log("job p done len", jobs_promises.length);
                 odoo.__DEBUG__.processJobs();
             });
         },
@@ -375,10 +374,6 @@
         }
         return services[moduleName];
     };
-
-    globalThis.addEventListener("load", function processJobWhebLoaded() {
-        odoo.__DEBUG__.processJobs();
-    });
     
     // Automatically log errors detected when loading modules
     globalThis.addEventListener("load", function logWhenLoaded() {

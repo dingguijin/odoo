@@ -2089,6 +2089,10 @@ class MailThread(models.AbstractModel):
                 email_from = author.email_formatted
 
         # superuser mode without author email -> probably public user; anyway we don't want to crash
+        _logger.info("from_email is [%s]" % email_from)
+        _logger.info("self.env.su %s" % self.env.su)
+        _logger.info("raise_exception %s" % raise_exception)
+
         if not email_from and not self.env.su and raise_exception:
             raise exceptions.UserError(_("Unable to log message, please configure the sender's email address."))
 

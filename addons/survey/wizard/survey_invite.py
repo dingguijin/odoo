@@ -30,7 +30,8 @@ class SurveyInvite(models.TransientModel):
 
     # composer content
     attachment_ids = fields.Many2many(
-        'ir.attachment', 'survey_mail_compose_message_ir_attachments_rel', 'wizard_id', 'attachment_id',
+        'ir.attachment', 'survey_mail_compose_message_ir_attachments_rel', 
+        'purchase_id', 'attachment_id',
         string='Attachments')
     # origin
     email_from = fields.Char('From', default=_get_default_from, help="Email address of the sender.")

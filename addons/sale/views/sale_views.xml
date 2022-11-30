@@ -345,6 +345,7 @@
                             <field name="currency_id" invisible="1"/>
                             <field name="tax_country_id" invisible="1"/>
                             <field name="payment_term_id" options="{'no_open':True,'no_create': True}"/>
+			    <field name="main_purchase_order"/>
                         </group>
                     </group>
                     <notebook>

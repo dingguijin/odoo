@@ -24,6 +24,56 @@ class PurchaseOrder(models.Model):
     _description = "Purchase Order"
     _order = 'priority desc, id desc'
 
+    is_landed_cost = fields.Boolean("到岸成本", default=False, readonly=False, copy=False, help="")
+    landed_cost_type = fields.Selection([
+        ("ISS", "保险费"),
+        ("CUS", "报关费"),
+        ("SHI", "运输费"),
+        ("HAB", "港口费"),
+        ], string="到岸成本类型")
+    yunmao_purchase_order_id = fields.Many2one('purchase.order', string='主采购订单', domain='[("is_landed_cost", "=", False)]')
+
+    landed_cost_purchase_orders = fields.One2many('purchase.order', 'yunmao_purchase_order_id', string='到岸成本')
+    #yunmao_purchase_sale_orders = fields.One2many('sale.order', 'main_purchase_order', string='')
+    
+    yunmao_credit_payment_type = fields.Selection([("不可撤销即期信用证"), ("可撤销即期信用证")], string="付款方式")
+    yunmao_credit_name_price = fields.Char("定价方式")
+
+    yunmao_issurance_ship_name = fields.Char("船舶名称" , domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
+    yunmao_issurance_shipping_number = fields.Char("提单号", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
+    yunmao_issurance_benefit_company = fields.Many2one("res.partner", string="投保公司", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
+    yunmao_issurance_benefit_volume = fields.Monetary(string="保额", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
+
+    yunmao_contract_number = fields.Char("")
+    yunmao_vendor_contract_number = fields.Char("")
+    yunmao_vendor_contract_name = fields.Char("")
+    yunmao_start_shipping_day = fields.Datetime("")
+    yunmao_destination_habor = fields.Char("")
+    yunmao_destination_stock = fields.Char("")
+    yunmao_destination_habor_day = fields.Datetime("")
+    yunmao_laycan_start_day = fields.Datetime("")
+    yunmao_laycan_end_day = fields.Datetime("")
+
+    yunmao_credit_number = fields.Char(string="信用证编号")
+    yunmao_credit_day = fields.Datetime("")
+    yunmao_credit_usd_volume = fields.Float("")
+    yunmao_credit_margin_ratio = fields.Float("")
+    yunmao_credit_bank = fields.Many2one("res.partner.bank")
+
+    attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_purchase_credit_ir_attachments_rel',
+        'purchase_id', 'attachment_id',
+        string='信用证相关文件')
+    contract_attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_purchase_contract_ir_attachments_rel',
+        'purchase_id', 'attachment_id',
+        string='合同相关文件')
+    yunmao_credit_currency_open = fields.Float("")
+    yunmao_credit_currency_close = fields.Float("")
+    yunmao_credit_rmb_volume_open = fields.Float("")
+    yunmao_credit_rmb_volume_close = fields.Float("")
+    
+
     @api.depends('order_line.price_total')
     def _amount_all(self):
         for order in self:

@@ -178,6 +178,14 @@
                             <field name="id" invisible="1"/>
                         </group>
                         <group>
+				<field name="is_landed_cost" />
+				<field name="yunmao_purchase_order_id" attrs="{'invisible': [('is_landed_cost', '=', False)]}" />
+				<field name="landed_cost_type" attrs="{'invisible': [('is_landed_cost', '=', False)]}" />
+				<field name="yunmao_issurance_ship_name" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
+				<field name="yunmao_issurance_shipping_number" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
+				<field name="yunmao_issurance_benefit_company" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
+				<field name="yunmao_issurance_benefit_volume" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
+
                             <field name="date_order" attrs="{'invisible': [('state','in',('purchase','done'))]}"/>
                             <label for="date_approve" attrs="{'invisible': [('state','not in',('purchase','done'))]}"/>
                             <div name="date_approve" attrs="{'invisible': [('state','not in',('purchase','done'))]}" class="o_row">
@@ -365,6 +373,59 @@
                             </group>
                             <div class="oe_clear"/>
                         </page>
+			<page string="采购合同" name="contract" attrs ="{'invisible':[('is_landed_cost','=', True)]}">
+				<group>
+					<group>
+						<field name="yunmao_contract_number" string="云贸采购合同编号"/>
+						<field name="yunmao_vendor_contract_number" string="供货商销售合同编号" />
+						<field name="yunmao_vendor_contract_name" string="供货商销售合同名称" />
+						<field name="yunmao_destination_habor" string="目的港口" />
+						<field name="yunmao_destination_stock" string="货堆（具体存放地址）" />
+						<field name="contract_attachment_ids" widget="many2many_binary" string="合同相关文件" />
+						
+					</group>
+					<group>
+						<field name="yunmao_start_shipping_day" widget="date" string="提单日期（开航日）" />
+						<field name="yunmao_destination_habor_day" widget="date" string="预计到港日期" />
+						<field name="yunmao_laycan_start_day" widget="date" string="开始装港日期" />
+						<field name="yunmao_laycan_end_day" widget="date" string="结束装港日期" />
+
+					</group>
+				</group>
+			</page>
+			<page string="信用证" name="credit" attrs ="{'invisible':[('is_landed_cost','=', True)]}">
+				<group>
+					<group>
+						<field name="yunmao_credit_number" string="信用证编号"/>
+						<field name="yunmao_credit_day" widget="date" string="开证日期"/>
+						<field name="yunmao_credit_margin_ratio" string="保证金比率" />
+						<field name="yunmao_credit_bank" string="信用证银行" />
+						<field name="yunmao_credit_payment_type" string="付款方式" />
+						<field name="yunmao_credit_name_price" string="定价方式" />
+						<field name="attachment_ids" widget="many2many_binary" string="信用证相关文件" />
+				
+					</group>
+					<group>
+						<field name="yunmao_credit_usd_volume" string="总额（美元）" />
+						<field name="yunmao_credit_currency_open" string="开证时汇率" />
+						<field name="yunmao_credit_currency_close" string="结算时汇率" />
+						<field name="yunmao_credit_rmb_volume_open" string="开证时人民币" />
+						<field name="yunmao_credit_rmb_volume_close" string="结算时人民币" />
+					</group>
+				</group>
+			</page>
+
+			<page string="到岸成本" name="landed_cost" attrs ="{'invisible':[('is_landed_cost','=', True)]}">
+                        <field name="landed_cost_purchase_orders"
+                                widget="section_and_note_one2many"
+				mode="tree">
+                                <tree string="Purchase Order Lines">
+                                    <field name="name" />
+				    <field name="landed_cost_type" />
+                                    <field name="amount_total" />
+			    	</tree>
+			</field>
+			</page>
                         <page string="Other Information" name="purchase_delivery_invoice">
                             <group>
                                 <group name="other_info">

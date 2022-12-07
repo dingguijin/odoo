@@ -160,7 +160,14 @@ class SaleOrder(models.Model):
             return [('id', 'not in', order_ids)]
         return ['&', ('order_line.invoice_lines.move_id.move_type', 'in', ('out_invoice', 'out_refund')), ('order_line.invoice_lines.move_id', operator, value)]
 
-    main_purchase_order = fields.Many2one('purchase.order', string='主采购订单', required=True)
+    yunmao_purchase_order = fields.Char(string='关联采购订单')
+    yunmao_order_type = fields.Selection([('US', '美金货'), ('PRE', '现货预售')], string='类型')
+    yunmao_order_habor = fields.Char(string='港口')
+    yunmao_order_attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_order_ir_attachments_rel',
+        'yunmao_order_id', 'attachment_id',
+        string='附件')
+
 
     name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, states={'draft': [('readonly', False)]}, index=True, default=lambda self: _('New'))
     origin = fields.Char(string='Source Document', help="Reference of the document that generated this sales order request.")

@@ -34,15 +34,20 @@ class PurchaseOrder(models.Model):
     yunmao_purchase_order_id = fields.Many2one('purchase.order', string='主采购订单', domain='[("is_landed_cost", "=", False)]')
 
     landed_cost_purchase_orders = fields.One2many('purchase.order', 'yunmao_purchase_order_id', string='到岸成本')
-    #yunmao_purchase_sale_orders = fields.One2many('sale.order', 'main_purchase_order', string='')
     
-    yunmao_credit_payment_type = fields.Selection([("不可撤销即期信用证"), ("可撤销即期信用证")], string="付款方式")
+    yunmao_credit_payment_type = fields.Selection([("UNREVERTABLE", "不可撤销即期信用证"), ("REVERTABLE", "可撤销即期信用证")], string="付款方式")
     yunmao_credit_name_price = fields.Char("定价方式")
 
-    yunmao_issurance_ship_name = fields.Char("船舶名称" , domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
-    yunmao_issurance_shipping_number = fields.Char("提单号", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
-    yunmao_issurance_benefit_company = fields.Many2one("res.partner", string="投保公司", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
-    yunmao_issurance_benefit_volume = fields.Monetary(string="保额", domain='[("is_landed_cost", "=", False), ("landed_cost_type", "=", "ISS")]')
+    yunmao_issurance_ship_name = fields.Char("船舶名称")
+    yunmao_issurance_shipping_number = fields.Char("提单号")
+    yunmao_issurance_benefit_company = fields.Many2one("res.partner", string="投保公司")
+    yunmao_issurance_benefit_volume = fields.Monetary(string="保额", currency_field='yunmao_issurance_benefit_currency')
+    yunmao_issurance_benefit_currency = fields.Many2one('res.currency')
+    yunmao_issurance_ticket_number = fields.Char(string="保单号")
+    yunmao_issurance_attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_purchase_issurance_ir_attachments_rel',
+        'purchase_id', 'attachment_id',
+        string='保险相关文件')
 
     yunmao_contract_number = fields.Char("")
     yunmao_vendor_contract_number = fields.Char("")
@@ -58,7 +63,7 @@ class PurchaseOrder(models.Model):
     yunmao_credit_day = fields.Datetime("")
     yunmao_credit_usd_volume = fields.Float("")
     yunmao_credit_margin_ratio = fields.Float("")
-    yunmao_credit_bank = fields.Many2one("res.partner.bank")
+    yunmao_credit_bank = fields.Char("")
 
     attachment_ids = fields.Many2many(
         'ir.attachment', 'yunmao_purchase_credit_ir_attachments_rel',

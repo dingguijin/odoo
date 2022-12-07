@@ -181,10 +181,6 @@
 				<field name="is_landed_cost" />
 				<field name="yunmao_purchase_order_id" attrs="{'invisible': [('is_landed_cost', '=', False)]}" />
 				<field name="landed_cost_type" attrs="{'invisible': [('is_landed_cost', '=', False)]}" />
-				<field name="yunmao_issurance_ship_name" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
-				<field name="yunmao_issurance_shipping_number" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
-				<field name="yunmao_issurance_benefit_company" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
-				<field name="yunmao_issurance_benefit_volume" attrs="{'invisible': [('landed_cost_type', '!=', 'ISS')]}"/>
 
                             <field name="date_order" attrs="{'invisible': [('state','in',('purchase','done'))]}"/>
                             <label for="date_approve" attrs="{'invisible': [('state','not in',('purchase','done'))]}"/>
@@ -426,6 +422,26 @@
 			    	</tree>
 			</field>
 			</page>
+			<page string="保险费" name="landed_cost" attrs ="{'invisible':['|', ('landed_cost_type','!=', 'ISS'), ('is_landed_cost', '=', False)]}">
+
+				<group>
+					<group>
+				<field name="yunmao_issurance_ship_name" string="船舶名称"/> 
+				<field name="yunmao_issurance_shipping_number"/>
+		</group>
+				<group>
+				<field name="yunmao_issurance_ticket_number" />
+				<field name="yunmao_issurance_benefit_company" />
+                            <label for="yunmao_issurance_benefit_volume"/>
+                            <div name="yunmao_issurance_benefit_div" class="o_row">
+				<field string="币种" name="yunmao_issurance_benefit_currency" />
+				<field name="yunmao_issurance_benefit_volume" />
+                            </div>
+				<field name="yunmao_issurance_attachment_ids" widget="many2many_binary"/>
+			</group>
+		</group>
+
+			</page>
                         <page string="Other Information" name="purchase_delivery_invoice">
                             <group>
                                 <group name="other_info">
@@ -584,6 +600,8 @@
                     <field name="message_unread" invisible="1"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-info="state in ('draft','sent')"/>
+		<field name="yunmao_purchase_order_id" />
+		<field name="is_landed_cost" />
                     <field name="date_order" invisible="not context.get('quotation_only', False)" optional="show"/>
                     <field name="date_approve" invisible="context.get('quotation_only', False)" optional="show"/>
                     <field name="partner_id" readonly="1"/>
@@ -619,6 +637,8 @@
                     <field name="message_unread" invisible="1"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1"/>
+		<field name="yunmao_purchase_order_id" />
+		<field name="is_landed_cost" />
                     <field name="date_approve" invisible="context.get('quotation_only', False)" optional="show"/>
                     <field name="partner_id" readonly="1"/>
                     <field name="company_id" readonly="1" options="{'no_create': True}"
@@ -656,6 +676,8 @@
                     <field name="message_unread" invisible="1"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1" decoration-info="state in ('draft','sent')"/>
+		<field name="yunmao_purchase_order_id" />
+		<field name="is_landed_cost" />
                     <field name="date_approve" widget="date" invisible="context.get('quotation_only', False)" optional="show"/>
                     <field name="partner_id"/>
                     <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" optional="show"/>

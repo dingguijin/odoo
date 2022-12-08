@@ -422,6 +422,37 @@
 			    	</tree>
 			</field>
 			</page>
+			<page string="过汇记录" name="currency_line" attrs ="{'invisible':[('is_landed_cost','=', True)]}">
+                        <field name="yunmao_currency_line"
+                                widget="section_and_note_one2many"
+				mode="tree">
+                                <tree string="Lines" editable="bottom">
+                                    <control>
+                                        <create name="add_currency_control" string="添加过汇记录"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="date" />
+                                    <field name="rate" />
+                                    <field name="usd" />
+                                    <field name="cny" />
+				    <field name="subtotal" />
+				    <field name="usd_currency" invisible="1"/>
+				    <field name="cny_currency" invisible="1"/>
+			    	</tree>
+			</field>
+				    <group>
+					<group class="oe_subtotal_footer oe_left">
+						<field name="usd_currency" invisible="1" />
+					    <field string="美金总计" name="usd_totals_json" colspan="2"/>
+					</group>
+					<group class="oe_subtotal_footer oe_right">
+						<field name="cny_currency" invisible="1" />
+					    <field string="人民币总计" name="cny_totals_json" colspan="2"/>
+					</group>
+				    </group>
+				    <div class="oe_clear"/>
+			</page>
 			<page string="保险费" name="landed_cost" attrs ="{'invisible':['|', ('landed_cost_type','!=', 'ISS'), ('is_landed_cost', '=', False)]}">
 
 				<group>

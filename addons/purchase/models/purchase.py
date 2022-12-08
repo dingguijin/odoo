@@ -64,6 +64,7 @@ class PurchaseOrder(models.Model):
     yunmao_credit_usd_volume = fields.Float("")
     yunmao_credit_margin_ratio = fields.Float("")
     yunmao_credit_bank = fields.Char("")
+    yunmao_currency_line = fields.One2many('purchase.currency.line', 'order_id', string='Currency Lines', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True)
 
     attachment_ids = fields.Many2many(
         'ir.attachment', 'yunmao_purchase_credit_ir_attachments_rel',
@@ -78,6 +79,33 @@ class PurchaseOrder(models.Model):
     yunmao_credit_rmb_volume_open = fields.Float("")
     yunmao_credit_rmb_volume_close = fields.Float("")
     
+    @api.depends('yunmao_currency_line.subtotal')
+    def  _compute_cny_totals_json(self):
+        for order in self:
+            _total = 0.0
+            for line in order.yunmao_currency_line:
+                _total += line.subtotal
+            order.cny_totals_json = _total
+
+    @api.depends('yunmao_currency_line.subtotal')
+    def  _compute_usd_totals_json(self):
+        for order in self:
+            _total = 0.0
+            for line in order.yunmao_currency_line:
+                _total += line.usd
+            order.usd_totals_json = _total
+
+    def _default_usd_currency(self):
+        return self.env.ref('base.USD')
+
+    def _default_cny_currency(self):
+        return self.env.ref('base.CNY')
+    
+    usd_currency = fields.Many2one('res.currency', string='USD Currency', default=_default_usd_currency, readonly=True)
+    cny_currency = fields.Many2one('res.currency', string='CNY Currency', default=_default_cny_currency, readonly=True)
+    cny_totals_json = fields.Monetary(compute='_compute_cny_totals_json', currency_field='cny_currency')
+    usd_totals_json = fields.Monetary(compute='_compute_usd_totals_json', currency_field='usd_currency')
+
 
     @api.depends('order_line.price_total')
     def _amount_all(self):
@@ -937,6 +965,37 @@ class PurchaseOrder(models.Model):
         if 'reminder_date_before_receipt' in vals:
             partner_values['reminder_date_before_receipt'] = vals.pop('reminder_date_before_receipt')
         return vals, partner_values
+
+class PurchaseCurrencyLine(models.Model):
+    _name = 'purchase.currency.line'
+    _description = 'purchase currency line'
+    _order = 'order_id, id'
+
+    def _default_usd_currency(self):
+        return self.env.ref('base.USD')
+
+    def _default_cny_currency(self):
+        return self.env.ref('base.CNY')
+    
+    @api.depends('rate', 'usd')
+    def _compute_subtotal(self):
+        for line in self:
+            line.subtotal = line.usd * line.rate
+
+    @api.depends('rate', 'usd')
+    def _compute_cny(self):
+        for line in self:
+            line.cny = line.usd * line.rate
+    
+    order_id = fields.Many2one('purchase.order', string='Order Reference', index=True, required=True, ondelete='cascade')
+    name = fields.Char(string='Name')
+    date = fields.Datetime(string='Date')
+    rate = fields.Float(string='Rate')
+    usd = fields.Monetary(string='USD', currency_field='usd_currency')
+    cny = fields.Monetary(string='CNY', currency_field='cny_currency', compute='_compute_cny', readonly=True, store=True)
+    usd_currency = fields.Many2one('res.currency', string='USD Currency', default=_default_usd_currency, readonly=True)
+    cny_currency = fields.Many2one('res.currency', string='CNY Currency', default=_default_cny_currency, readonly=True)
+    subtotal = fields.Monetary(string='Subtotal', currency_field='cny_currency', compute='_compute_subtotal', store=True, readonly=True)
 
 
 class PurchaseOrderLine(models.Model):

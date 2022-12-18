@@ -59,6 +59,9 @@ class PurchaseOrder(models.Model):
     yunmao_laycan_start_day = fields.Datetime("")
     yunmao_laycan_end_day = fields.Datetime("")
 
+    yunmao_credit_interest = fields.Float(string="利息")
+    yunmao_credit_comission = fields.Float(string="手续费")
+
     yunmao_credit_number = fields.Char(string="信用证编号")
     yunmao_credit_day = fields.Datetime("")
     yunmao_credit_usd_volume = fields.Float("")
@@ -106,6 +109,26 @@ class PurchaseOrder(models.Model):
     cny_totals_json = fields.Monetary(compute='_compute_cny_totals_json', currency_field='cny_currency')
     usd_totals_json = fields.Monetary(compute='_compute_usd_totals_json', currency_field='usd_currency')
 
+    yunmao_invoice_line = fields.One2many('purchase.invoice.line', 'order_id', string='Invoice Line', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True)
+
+
+    @api.depends('order_line.product_qty')
+    def _compute_yunmao_product_quant(self):
+        for order in self:
+            _quant = 0
+            for line in order.order_line:
+                _quant += line.product_qty
+            order.yunmao_product_quant = _quant 
+        return
+    @api.depends('order_line.price_unit')
+    def _compute_yunmao_product_unit_price(self):
+        for order in self:
+            for line in order.order_line:
+                order.yunmao_product_unit_price = line.price_unit 
+        return
+
+    yunmao_product_quant = fields.Float(string='数量', compute='_compute_yunmao_product_quant', store=True)
+    yunmao_product_unit_price = fields.Float(string='单价', compute='_compute_yunmao_product_unit_price', store=True)
 
     @api.depends('order_line.price_total')
     def _amount_all(self):
@@ -965,6 +988,15 @@ class PurchaseOrder(models.Model):
         if 'reminder_date_before_receipt' in vals:
             partner_values['reminder_date_before_receipt'] = vals.pop('reminder_date_before_receipt')
         return vals, partner_values
+
+class PurchaseInvoiceLine(models.Model):
+    _name = 'purchase.invoice.line'
+    _description = 'purchase invoice line'
+    _order = 'order_id, id'
+    order_id = fields.Many2one('purchase.order', string='Order Reference', index=True, required=True, ondelete='cascade')
+    name = fields.Char(string='Invoice No.')
+    date = fields.Datetime(string='Date')
+    invoice_type = fields.Char(string='Type')
 
 class PurchaseCurrencyLine(models.Model):
     _name = 'purchase.currency.line'

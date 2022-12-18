@@ -7,6 +7,9 @@ access_purchase_order_portal,purchase.order.portal,purchase.model_purchase_order
 access_purchase_currency_line,purchase.currency.line user,model_purchase_currency_line,group_purchase_user,1,1,1,1
 access_purchase_currency_line_manager,purchase.currency.line,model_purchase_currency_line,group_purchase_manager,1,1,1,1
 
+access_purchase_invoice_line,purchase.invoice.line user,model_purchase_invoice_line,group_purchase_user,1,1,1,1
+access_purchase_invoice_line_manager,purchase.invoice.line,model_purchase_invoice_line,group_purchase_manager,1,1,1,1
+
 access_purchase_order_line,purchase.order.line user,model_purchase_order_line,group_purchase_user,1,1,1,1
 access_purchase_order_line_manager,purchase.order.line,model_purchase_order_line,group_purchase_manager,1,1,1,1
 access_purchase_order_line_invoicing_payments_readonly,purchase.order.line,model_purchase_order_line,account.group_account_readonly,1,0,0,0

@@ -407,6 +407,8 @@
 						<field name="yunmao_credit_currency_close" string="结算时汇率" />
 						<field name="yunmao_credit_rmb_volume_open" string="开证时人民币" />
 						<field name="yunmao_credit_rmb_volume_close" string="结算时人民币" />
+						<field name="yunmao_credit_interest" string="利息" />
+						<field name="yunmao_credit_comission" string="手续费" />
 					</group>
 				</group>
 			</page>
@@ -457,21 +459,36 @@
 
 				<group>
 					<group>
-				<field name="yunmao_issurance_ship_name" string="船舶名称"/> 
-				<field name="yunmao_issurance_shipping_number"/>
-		</group>
-				<group>
-				<field name="yunmao_issurance_ticket_number" />
-				<field name="yunmao_issurance_benefit_company" />
-                            <label for="yunmao_issurance_benefit_volume"/>
-                            <div name="yunmao_issurance_benefit_div" class="o_row">
-				<field string="币种" name="yunmao_issurance_benefit_currency" />
-				<field name="yunmao_issurance_benefit_volume" />
-                            </div>
-				<field name="yunmao_issurance_attachment_ids" widget="many2many_binary"/>
-			</group>
-		</group>
+						<field name="yunmao_issurance_ship_name" string="船舶名称"/> 
+						<field name="yunmao_issurance_shipping_number"/>
+					</group>
+					<group>
+						<field name="yunmao_issurance_ticket_number" />
+						<field name="yunmao_issurance_benefit_company" />
+						<label for="yunmao_issurance_benefit_volume"/>
+					    	<div name="yunmao_issurance_benefit_div" class="o_row">
+							<field string="币种" name="yunmao_issurance_benefit_currency" />
+							<field name="yunmao_issurance_benefit_volume" />
+						</div>
+						<field name="yunmao_issurance_attachment_ids" widget="many2many_binary"/>
+					</group>
+				</group>
 
+			</page>
+			<page string="发票信息">
+                        <field name="yunmao_invoice_line"
+                                widget="section_and_note_one2many"
+				mode="tree">
+                                <tree string="Lines" editable="bottom">
+					    <control>
+						<create name="add_invoice_control" string="添加"/>
+					    </control>
+					    <field name="date" string="开票日期" />
+					    <field name="name" string="发票号码" />
+					    <field name="invoice_type" string="发票类型" />
+
+			    	</tree>
+			</field>
 			</page>
                         <page string="Other Information" name="purchase_delivery_invoice">
                             <group>
@@ -632,6 +649,8 @@
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-info="state in ('draft','sent')"/>
 		<field name="yunmao_purchase_order_id" />
+		<field name="yunmao_product_quant" />
+		<field name="yunmao_product_unit_price" />
 		<field name="is_landed_cost" />
                     <field name="date_order" invisible="not context.get('quotation_only', False)" optional="show"/>
                     <field name="date_approve" invisible="context.get('quotation_only', False)" optional="show"/>
@@ -669,6 +688,8 @@
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1"/>
 		<field name="yunmao_purchase_order_id" />
+		<field name="yunmao_product_quant" />
+		<field name="yunmao_product_unit_price" />
 		<field name="is_landed_cost" />
                     <field name="date_approve" invisible="context.get('quotation_only', False)" optional="show"/>
                     <field name="partner_id" readonly="1"/>
@@ -708,6 +729,8 @@
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1" decoration-info="state in ('draft','sent')"/>
 		<field name="yunmao_purchase_order_id" />
+		<field name="yunmao_product_quant" />
+		<field name="yunmao_product_unit_price" />
 		<field name="is_landed_cost" />
                     <field name="date_approve" widget="date" invisible="context.get('quotation_only', False)" optional="show"/>
                     <field name="partner_id"/>

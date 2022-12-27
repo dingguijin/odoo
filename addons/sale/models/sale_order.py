@@ -168,6 +168,8 @@ class SaleOrder(models.Model):
         'yunmao_order_id', 'attachment_id',
         string='附件')
 
+    yunmao_invoice_line = fields.One2many('sale.invoice.line', 'order_id', string='Invoice Line', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True)
+
 
     name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, states={'draft': [('readonly', False)]}, index=True, default=lambda self: _('New'))
     origin = fields.Char(string='Source Document', help="Reference of the document that generated this sales order request.")
@@ -1122,3 +1124,4 @@ class SaleOrder(models.Model):
 
     def add_option_to_order_with_taxcloud(self):
         self.ensure_one()
+

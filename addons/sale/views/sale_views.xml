@@ -655,6 +655,26 @@
                                 <div class="oe_clear"/>
                             </group>
                         </page>
+			<page string="发票信息">
+                        <field name="yunmao_invoice_line"
+                                widget="section_and_note_one2many"
+				mode="tree">
+                                <tree string="Lines" editable="bottom">
+					    <control>
+						<create name="add_invoice_control" string="添加"/>
+					    </control>
+					    <field name="date" string="开票日期" />
+					    <field name="name" string="发票号码" />
+					    <field name="invoice_type" string="发票类型" />
+					    <field name="expense_type" string="费用类型" />
+					    <field name="invoice_value" string="发票金额" />
+					    <field name="invoice_tax" string="税额" />
+					    <field name="invoice_total" string="价税合计" />
+					<field name="attachment_ids" widget="many2many_binary" string="相关文件" />
+
+			    	</tree>
+			</field>
+			</page>
                         <page string="Other Info" name="other_information">
                             <group>
                                 <group name="sales_person" string="Sales">
@@ -952,7 +972,6 @@
             <field name="view_id" ref="view_quotation_tree_with_onboarding"/>
             <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
             <field name="search_view_id" ref="sale_order_view_search_inherit_quotation"/>
-            <field name="context">{'search_default_my_quotation': 1}</field>
             <field name="help" type="html">
               <p class="o_view_nocontent_smiling_face">
                 Create a new quotation, the first step of a new sale!
@@ -968,7 +987,6 @@
             <field name="res_model">sale.order</field>
             <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
             <field name="search_view_id" ref="sale_order_view_search_inherit_quotation"/>
-            <field name="context">{'search_default_my_quotation': 1}</field>
             <field name="help" type="html">
               <p class="o_view_nocontent_smiling_face">
                 Create a new quotation, the first step of a new sale!

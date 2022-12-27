@@ -2,6 +2,13 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_purchase_order,purchase.order,model_purchase_order,group_purchase_user,1,1,1,1
 access_purchase_order_manager,purchase.order,model_purchase_order,group_purchase_manager,1,1,1,1
 access_purchase_order_invoicing_payments_readonly,purchase.order,model_purchase_order,account.group_account_readonly,1,0,0,0
+
+
+access_purchase_order_readuser,purchase.order,model_purchase_order,group_purchase_readuser,1,0,0,0
+access_purchase_currency_line_readuser,purchase.currency.line readuser,model_purchase_currency_line,group_purchase_readuser,0,0,0,0
+access_purchase_invoice_line_readuser,purchase.invoice.line readuser,model_purchase_invoice_line,group_purchase_readuser,1,0,0,0
+access_purchase_order_line_readuser,purchase.order.line readuser,model_purchase_order_line,group_purchase_readuser,1,0,0,0
+
 access_purchase_order_invoicing_payments,purchase.order,model_purchase_order,account.group_account_invoice,1,1,0,0
 access_purchase_order_portal,purchase.order.portal,purchase.model_purchase_order,base.group_portal,1,0,0,0
 access_purchase_currency_line,purchase.currency.line user,model_purchase_currency_line,group_purchase_user,1,1,1,1

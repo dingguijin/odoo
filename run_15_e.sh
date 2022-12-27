@@ -1,1 +1,1 @@
-./odoo-bin --workers=4 --http-port=8069 --longpolling-port=8071 --proxy-mode --data-dir=../../../odoo-data/odoo-15 --addons-path=addons,../../odoo-enterprise/enterprise --without-demo=true --limit-memory-hard=0 --dev=all
+./odoo-bin --workers=4 --http-port=8069 --longpolling-port=8071 --proxy-mode --data-dir=../../../odoo-data/odoo-15 --addons-path=addons,../../odoo-enterprise/enterprise,../../odoo-viewer-groups --without-demo=true --limit-memory-hard=0 --dev=all

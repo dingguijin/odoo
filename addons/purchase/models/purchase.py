@@ -111,24 +111,26 @@ class PurchaseOrder(models.Model):
 
     yunmao_invoice_line = fields.One2many('purchase.invoice.line', 'order_id', string='Invoice Line', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True)
 
-
     @api.depends('order_line.product_qty')
     def _compute_yunmao_product_quant(self):
         for order in self:
             _quant = 0
             for line in order.order_line:
                 _quant += line.product_qty
-            order.yunmao_product_quant = _quant 
+            order.yunmao_product_quant = _quant
         return
+
     @api.depends('order_line.price_unit')
     def _compute_yunmao_product_unit_price(self):
         for order in self:
             for line in order.order_line:
-                order.yunmao_product_unit_price = line.price_unit 
+                order.yunmao_product_unit_price = line.price_unit
         return
 
-    yunmao_product_quant = fields.Float(string='数量', compute='_compute_yunmao_product_quant', store=True)
-    yunmao_product_unit_price = fields.Float(string='单价', compute='_compute_yunmao_product_unit_price', store=True)
+    yunmao_product_quant = fields.Float(string='数量', compute='_compute_yunmao_product_quant', store=True
+)
+    yunmao_product_unit_price = fields.Float(string='单价', compute='_compute_yunmao_product_unit_price',
+store=True)
 
     @api.depends('order_line.price_total')
     def _amount_all(self):
@@ -997,6 +999,21 @@ class PurchaseInvoiceLine(models.Model):
     name = fields.Char(string='Invoice No.')
     date = fields.Datetime(string='Date')
     invoice_type = fields.Char(string='Type')
+    expense_type = fields.Char(string='费用类型')
+    invoice_value = fields.Float(string='发票金额')
+    invoice_tax = fields.Float(string='税额')
+    invoice_total = fields.Float(string='价税合计', compute='_compute_total', store=True)
+    attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_purchase_invoice_line_ir_attachments_rel',
+        'purchase_invoice_id', 'attachment_id',
+        string='相关文件')
+
+
+    @api.depends('invoice_tax', 'invoice_value')
+    def _compute_total(self):
+        for record in self:
+            record.invoice_total = record.invoice_value + record.invoice_tax
+        return
 
 class PurchaseCurrencyLine(models.Model):
     _name = 'purchase.currency.line'

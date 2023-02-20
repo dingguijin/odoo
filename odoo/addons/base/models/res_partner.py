@@ -239,6 +239,10 @@ class Partner(models.Model):
     # hack to allow using plain browse record in qweb views, and used in ir.qweb.field.contact
     self = fields.Many2one(comodel_name=_name, compute='_compute_get_ids')
 
+    attachment_ids = fields.Many2many(
+        'ir.attachment', 'yunmao_res_partner_ir_attachments_rel',
+        'partner_id', 'attachment_id', string='附件')
+
     _sql_constraints = [
         ('check_name', "CHECK( (type='contact' AND name IS NOT NULL) or (type!='contact') )", 'Contacts require a name'),
     ]

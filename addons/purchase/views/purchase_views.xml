@@ -136,18 +136,18 @@
                 <header>
                     <button name="action_rfq_send" states="draft" string="Send by Email" type="object" context="{'send_rfq':True}" class="oe_highlight" data-hotkey="g"/>
                     <button name="print_quotation" string="Print RFQ" type="object" states="draft" class="oe_highlight" groups="base.group_user" data-hotkey="k"/>
-                    <button name="button_confirm" type="object" states="sent" string="Confirm Order" class="oe_highlight" id="bid_confirm" data-hotkey="v"/>
+                    <button name="button_confirm" type="object" states="sent" string="Confirm Order" class="oe_highlight" id="bid_confirm" data-hotkey="v" groups="purchase.group_purchase_user"/>
                     <button name="button_approve" type="object" states='to approve' string="Approve Order" class="oe_highlight" groups="purchase.group_purchase_manager" data-hotkey="z"/>
                     <button name="action_create_invoice" string="Create Bill" type="object" class="oe_highlight" context="{'create_bill':True}" attrs="{'invisible': ['|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'in', ('no', 'invoiced'))]}" data-hotkey="w"/>
                     <button name="action_rfq_send" states="sent" string="Re-Send by Email" type="object" context="{'send_rfq':True}" data-hotkey="g"/>
                     <button name="print_quotation" string="Print RFQ" type="object" states="sent" groups="base.group_user" data-hotkey="k"/>
-                    <button name="button_confirm" type="object" states="draft" string="Confirm Order" id="draft_confirm"/>
+                    <button name="button_confirm" type="object" states="draft" string="Confirm Order" id="draft_confirm" groups="purchase.group_purchase_user"/>
                     <button name="action_rfq_send" states="purchase" string="Send PO by Email" type="object" context="{'send_rfq':False}" data-hotkey="g"/>
                     <button name="confirm_reminder_mail" string="Confirm Receipt Date" type="object" attrs="{'invisible': ['|','|', ('state', 'not in', ('purchase', 'done')), ('mail_reminder_confirmed', '=', True), ('date_planned', '=', False)]}" groups="base.group_no_one" data-hotkey="o"/>
-                    <button name="action_create_invoice" string="Create Bill" type="object" context="{'create_bill':True}" attrs="{'invisible': ['|', '|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'not in', ('no', 'invoiced')), ('order_line', '=', [])]}" data-hotkey="w"/>
+                    <button name="action_create_invoice" string="Create Bill" type="object" context="{'create_bill':True}" attrs="{'invisible': ['|', '|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'not in', ('no', 'invoiced')), ('order_line', '=', [])]}" data-hotkey="w" groups="purchase.group_purchase_user"/>
                     <button name="button_draft" states="cancel" string="Set to Draft" type="object" data-hotkey="o"/>
-                    <button name="button_cancel" states="draft,to approve,sent,purchase" string="Cancel" type="object" data-hotkey="x" />
-                    <button name="button_done" type="object" string="Lock" states="purchase" data-hotkey="l"/>
+                    <button name="button_cancel" states="draft,to approve,sent,purchase" string="Cancel" type="object" data-hotkey="x" groups="purchase.group_purchase_user" />
+                    <button name="button_done" type="object" string="Lock" states="purchase" data-hotkey="l" groups="purchase.group_purchase_user"/>
                     <button name="button_unlock" type="object" string="Unlock" states="done" groups="purchase.group_purchase_manager" data-hotkey="l"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,sent,purchase" readonly="1"/>
                 </header>
@@ -205,6 +205,7 @@
                                     <widget name='toaster_button' button_name="send_reminder_preview" title="Preview the reminder email by sending it to yourself." attrs="{'invisible': [('id', '=', False)]}"/>
                                 </div>
                             </div>
+			    <field name="yunmao_issurance_ship_name" />
                         </group>
                     </group>
                     <notebook>
@@ -403,12 +404,15 @@
 					</group>
 					<group>
 						<field name="yunmao_credit_usd_volume" string="总额（美元）" />
-						<field name="yunmao_credit_currency_open" string="开证时汇率" />
-						<field name="yunmao_credit_currency_close" string="结算时汇率" />
-						<field name="yunmao_credit_rmb_volume_open" string="开证时人民币" />
-						<field name="yunmao_credit_rmb_volume_close" string="结算时人民币" />
+						<field name="yunmao_credit_talk_date" string="议付日期" widget="date" />
+						<field name="yunmao_credit_deposite_volume" string="押汇金额" />
+						<field name="yunmao_credit_deposite_rate" string="押汇利率" widget="percentage"/>
+						<field name="yunmao_credit_deposite_date" string="押汇到期日" widget="date" />
+						<field name="yunmao_credit_open_volume" string="开证保证金" />
+
 						<field name="yunmao_credit_interest" string="利息" />
 						<field name="yunmao_credit_comission" string="手续费" />
+						<field name="yunmao_credit_misc" string="其它" />
 					</group>
 				</group>
 			</page>
@@ -434,7 +438,7 @@
                                         <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
                                         <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
                                     </control>
-                                    <field name="date" />
+                                    <field name="date" widget="date"/>
                                     <field name="rate" />
                                     <field name="usd" />
                                     <field name="cny" />
@@ -483,10 +487,11 @@
 					    <control>
 						<create name="add_invoice_control" string="添加"/>
 					    </control>
-					    <field name="date" string="开票日期" />
+					    <field name="date" string="开票日期" widget="date"/>
 					    <field name="name" string="发票号码" />
 					    <field name="invoice_type" string="发票类型" />
 					    <field name="expense_type" string="费用类型" />
+					    <field name="rate" string="汇率" />
 					    <field name="invoice_value" string="发票金额" />
 					    <field name="invoice_tax" string="税额" />
 					    <field name="invoice_total" string="价税合计" />

@@ -30,8 +30,15 @@ class PurchaseOrder(models.Model):
         ("CUS", "报关费"),
         ("SHI", "运输费"),
         ("HAB", "港口费"),
+        ("HDF", "货代费"),
+        ("GSF", "过筛费"),
+        ("DCF", "堆存费"),
+        ("YPF", "移泊费"),
+        ("JZF", "进口增值税"),
+        ("CBF", "差额保证金"),
+        ("QBF", "全额保证金"),
         ], string="到岸成本类型")
-    yunmao_purchase_order_id = fields.Many2one('purchase.order', string='主采购订单', domain='[("is_landed_cost", "=", False)]')
+    yunmao_purchase_order_id = fields.Many2one('purchase.order', string='主采购订单号', domain='[("is_landed_cost", "=", False)]')
 
     landed_cost_purchase_orders = fields.One2many('purchase.order', 'yunmao_purchase_order_id', string='到岸成本')
     
@@ -61,6 +68,7 @@ class PurchaseOrder(models.Model):
 
     yunmao_credit_interest = fields.Float(string="利息")
     yunmao_credit_comission = fields.Float(string="手续费")
+    yunmao_credit_misc = fields.Char(string="其它")
 
     yunmao_credit_number = fields.Char(string="信用证编号")
     yunmao_credit_day = fields.Datetime("")
@@ -81,6 +89,23 @@ class PurchaseOrder(models.Model):
     yunmao_credit_currency_close = fields.Float("")
     yunmao_credit_rmb_volume_open = fields.Float("")
     yunmao_credit_rmb_volume_close = fields.Float("")
+
+    def _default_usd_currency(self):
+        return self.env.ref('base.USD')
+
+    def _default_cny_currency(self):
+        return self.env.ref('base.CNY')
+    
+    usd_currency = fields.Many2one('res.currency', string='USD Currency', default=_default_usd_currency, readonly=True)
+    cny_currency = fields.Many2one('res.currency', string='CNY Currency', default=_default_cny_currency, readonly=True)
+    cny_totals_json = fields.Monetary(compute='_compute_cny_totals_json', currency_field='cny_currency')
+    usd_totals_json = fields.Monetary(compute='_compute_usd_totals_json', currency_field='usd_currency')
+
+    yunmao_credit_talk_date = fields.Datetime(string="议付日期")
+    yunmao_credit_deposite_date = fields.Datetime(string="押汇到期日")
+    yunmao_credit_deposite_volume = fields.Monetary(string="押汇金额", currency_field='cny_currency')
+    yunmao_credit_deposite_rate = fields.Float(string="押汇利率")
+    yunmao_credit_open_volume = fields.Monetary(string="开证保证金", currency_field='cny_currency')
     
     @api.depends('yunmao_currency_line.subtotal')
     def  _compute_cny_totals_json(self):
@@ -98,16 +123,6 @@ class PurchaseOrder(models.Model):
                 _total += line.usd
             order.usd_totals_json = _total
 
-    def _default_usd_currency(self):
-        return self.env.ref('base.USD')
-
-    def _default_cny_currency(self):
-        return self.env.ref('base.CNY')
-    
-    usd_currency = fields.Many2one('res.currency', string='USD Currency', default=_default_usd_currency, readonly=True)
-    cny_currency = fields.Many2one('res.currency', string='CNY Currency', default=_default_cny_currency, readonly=True)
-    cny_totals_json = fields.Monetary(compute='_compute_cny_totals_json', currency_field='cny_currency')
-    usd_totals_json = fields.Monetary(compute='_compute_usd_totals_json', currency_field='usd_currency')
 
     yunmao_invoice_line = fields.One2many('purchase.invoice.line', 'order_id', string='Invoice Line', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True)
 
@@ -1000,6 +1015,7 @@ class PurchaseInvoiceLine(models.Model):
     date = fields.Datetime(string='Date')
     invoice_type = fields.Char(string='Type')
     expense_type = fields.Char(string='费用类型')
+    rate = fields.Float(string='汇率')
     invoice_value = fields.Float(string='发票金额')
     invoice_tax = fields.Float(string='税额')
     invoice_total = fields.Float(string='价税合计', compute='_compute_total', store=True)
@@ -1007,7 +1023,6 @@ class PurchaseInvoiceLine(models.Model):
         'ir.attachment', 'yunmao_purchase_invoice_line_ir_attachments_rel',
         'purchase_invoice_id', 'attachment_id',
         string='相关文件')
-
 
     @api.depends('invoice_tax', 'invoice_value')
     def _compute_total(self):

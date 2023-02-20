@@ -21,6 +21,7 @@ class SaleInvoiceLine(models.Model):
     order_id = fields.Many2one('sale.order', string='Order Reference', index=True, required=True, ondelete='cascade')
     name = fields.Char(string='Invoice No.')
     date = fields.Datetime(string='Date')
+    rate = fields.Float(string='汇率')
     invoice_type = fields.Char(string='Type')
     expense_type = fields.Char(string='费用类型')
     invoice_value = fields.Float(string='发票金额')

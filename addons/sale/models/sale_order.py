@@ -160,8 +160,15 @@ class SaleOrder(models.Model):
             return [('id', 'not in', order_ids)]
         return ['&', ('order_line.invoice_lines.move_id.move_type', 'in', ('out_invoice', 'out_refund')), ('order_line.invoice_lines.move_id', operator, value)]
 
-    yunmao_purchase_order = fields.Char(string='关联采购订单')
-    yunmao_order_type = fields.Selection([('US', '美金货'), ('PRE', '现货预售')], string='类型')
+    yunmao_sign_date = fields.Datetime("签订日期")
+    yunmao_payment_date = fields.Datetime("付款日期")
+    yunmao_final_ship_date = fields.Datetime("最终提货日期")
+    yunmao_final_volume = fields.Float("最终结算数量")
+    yunmao_ship_name = fields.Char("船名")
+    yunmao_contract_misc = fields.Char("备注")
+
+    yunmao_purchase_order = fields.Char(string='关联采购订单号')
+    yunmao_order_type = fields.Selection([('US', '美金货'), ('PRE', '现货预售'), ('SPOT', '现货')], string='类型')
     yunmao_order_habor = fields.Char(string='港口')
     yunmao_order_attachment_ids = fields.Many2many(
         'ir.attachment', 'yunmao_order_ir_attachments_rel',

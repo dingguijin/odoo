@@ -207,6 +207,7 @@
                     <field name="activity_ids" widget="list_activity" optional="show"/>
                     <field name="team_id" optional="hide"/>
                     <field name="company_id" groups="base.group_multi_company" optional="show" readonly="1"/>
+		    <field name="yunmao_final_volume" />
                     <field name="amount_untaxed" sum="Total Tax Excluded" widget="monetary" optional="hide"/>
                     <field name="amount_tax" sum="Tax Total" widget="monetary" optional="hide"/>
                     <field name="amount_total" sum="Total Tax Included" widget="monetary" decoration-bf="1" optional="show"/>
@@ -235,6 +236,7 @@
                     <field name="team_id" optional="hide"/>
                     <field name="tag_ids" optional="hide" widget="many2many_tags" options="{'color_field': 'color'}"/>
                     <field name="company_id" groups="base.group_multi_company" optional="show" readonly="1"/>
+		    <field name="yunmao_final_volume" />
                     <field name="amount_untaxed" sum="Total Tax Excluded" widget="monetary" optional="hide"/>
                     <field name="amount_tax" sum="Tax Total" widget="monetary" optional="hide"/>
                     <field name="amount_total" sum="Total Tax Included" widget="monetary" decoration-bf="1" optional="show"/>
@@ -283,13 +285,13 @@
                       attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('invoice_count','&gt;=',1)]}" context="{'proforma': True}"/>
                     <button name="action_confirm" id="action_confirm" data-hotkey="v"
                         string="Confirm" class="btn-primary" type="object"
-                        attrs="{'invisible': [('state', 'not in', ['sent'])]}"/>
+                        attrs="{'invisible': [('state', 'not in', ['sent'])]}" groups="sales_team.group_sale_salesman"/>
                     <button name="action_confirm" data-hotkey="v"
                         string="Confirm" type="object"
-                        attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
+                        attrs="{'invisible': [('state', 'not in', ['draft'])]}" groups="sales_team.group_sale_salesman"/>
                     <button name="action_quotation_send" type="object" string="Send PRO-FORMA Invoice" groups="sale.group_proforma_sales" attrs="{'invisible': ['|', ('state', '=', 'draft'), ('invoice_count','&gt;=',1)]}" context="{'proforma': True}"/>
                     <button name="action_quotation_send" string="Send by Email" type="object" states="sent,sale" data-hotkey="g"/>
-                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': ['|', ('state', 'not in', ['draft', 'sent','sale']), ('id', '=', False)]}" data-hotkey="z"/>
+                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': ['|', ('state', 'not in', ['draft', 'sent','sale']), ('id', '=', False)]}" data-hotkey="z" groups="sales_team.group_sale_salesman"/>
                     <button name="action_draft" states="cancel" type="object" string="Set to Quotation" data-hotkey="w"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale"/>
                 </header>
@@ -322,6 +324,13 @@
                             <field name="partner_id" widget="res_partner_many2one" context="{'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" options='{"always_reload": True}'/>
                             <field name="partner_invoice_id" groups="sale.group_delivery_invoice_address" context="{'default_type':'invoice'}" options='{"always_reload": True}'/>
                             <field name="partner_shipping_id" groups="sale.group_delivery_invoice_address" context="{'default_type':'delivery'}" options='{"always_reload": True}'/>
+
+			    <field name="yunmao_sign_date" widget="date" />
+			    <field name="yunmao_payment_date" widget="date" />
+			    <field name="yunmao_final_ship_date" widget="date" />
+			    <field name="yunmao_final_volume" />
+			    <field name="yunmao_ship_name" />
+			    <field name="yunmao_contract_misc" />
                         </group>
                         <group name="order_details">
                             <field name="validity_date" attrs="{'invisible': [('state', 'in', ['sale', 'done'])]}"/>
@@ -346,7 +355,6 @@
                             </div>
                             <field name="currency_id" invisible="1"/>
                             <field name="tax_country_id" invisible="1"/>
-                            <field name="payment_term_id" options="{'no_open':True,'no_create': True}"/>
 			    <field name="yunmao_purchase_order"/>
 			    <field name="yunmao_order_type"/>
 			    <field name="yunmao_order_habor"/>
@@ -663,11 +671,12 @@
 					    <control>
 						<create name="add_invoice_control" string="添加"/>
 					    </control>
-					    <field name="date" string="开票日期" />
+					    <field name="date" string="开票日期" widget="date"/>
 					    <field name="name" string="发票号码" />
 					    <field name="invoice_type" string="发票类型" />
 					    <field name="expense_type" string="费用类型" />
 					    <field name="invoice_value" string="发票金额" />
+					    <field name="rate" string="汇率" />
 					    <field name="invoice_tax" string="税额" />
 					    <field name="invoice_total" string="价税合计" />
 					<field name="attachment_ids" widget="many2many_binary" string="相关文件" />
